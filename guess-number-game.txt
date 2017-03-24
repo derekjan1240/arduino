@@ -1,0 +1,148 @@
+/*2017.3.24  ARDUINO猜數字
+
+遊戲方法:
+
+1.切開關 產生答案、遊戲指示燈亮 (指撥開關 LEDB)
+2.轉VR選擇要猜的數字  (LEDB 隨VR改變亮度)
+3.按下確認 (SW左)
+4.LED顯示結果 (G: BINGO R: TOO HIGH Y: TOO LOW)
+5.偷看答案 (SW右)
+==================================================*/
+
+int potPin = 0;                // 宣告類比腳位輸入的PIN腳
+int val = 0;                   // 宣告變數Val = 0
+int j,x;                       // 7seg 迴圈變數
+int answer,p,value;                  // 亂數答案 固定變數
+  
+int light[10][7]={{0,0,0,0,0,0,1}, //0
+                  {1,0,0,1,1,1,1}, //1
+                  {0,0,1,0,0,1,0}, //2
+                  {0,0,0,0,1,1,0}, //3
+                  {1,0,0,1,1,0,0}, //4
+                  {0,1,0,0,1,0,0}, //5
+                  {0,1,0,0,0,0,0}, //6
+                  {0,0,0,1,1,1,1}, //7
+                  {0,0,0,0,0,0,0}, //8
+                  {0,0,0,0,1,0,0}}; //9
+
+void setup() 
+{
+ Serial.begin(9600);
+ randomSeed(analogRead(1)); //亂數種子
+ pinMode(19, OUTPUT);  //ledg  bingo
+ pinMode(18, INPUT);   //switch
+ pinMode(3, OUTPUT);  //ledb on/off
+ pinMode(2, OUTPUT);  //ledr  higher
+ pinMode(17, OUTPUT);  //ledy  lower
+ pinMode(4, INPUT);  //sw show answer
+ pinMode(5, INPUT);  //sw enter
+ pinMode(6, OUTPUT);  //7-seg-a
+ pinMode(7, OUTPUT);  
+ pinMode(8, OUTPUT);
+ pinMode(9, OUTPUT);  
+ pinMode(10, OUTPUT);
+ pinMode(11, OUTPUT);
+ pinMode(12, OUTPUT);
+ pinMode(13, OUTPUT);
+}
+
+void loop() 
+{
+  val = analogRead(potPin);    // 用analogRead()這個函式讀取特定腳位的數值到變數val
+  Serial.println(val);           // 印出數值在Serial.Monitor
+  delay(150);                  // 延遲讀入的時間為150ms
+  
+ 
+ 
+//=========== 開始遊戲 ================== 
+  if(digitalRead(18) == HIGH)            
+  { 
+    answer = random(0,9);                //總開關SW未切 先跑亂碼
+    digitalWrite(2,0),digitalWrite(3,0),digitalWrite(17,0),digitalWrite(19,0);     //led reset
+    
+     for(j=0;j<8;j++)                    // 7seg reset
+     {digitalWrite(j+6,1);}
+  }  
+  else                                   //切下總開關SW 固定answer  遊戲燈 LEDB亮(隨VR改變亮度)
+  { value = val/4;
+    analogWrite(3,value);
+    delay(100);
+  
+  if(digitalRead(4)== HIGH)              // 按 SW2 顯示答案   
+  {x=answer;
+   for(j=0;j<7;j++)                      
+   {digitalWrite(j+6, light[x][j]);}}
+  
+  if(digitalRead(4)== LOW) 
+  {switch(val/100)               //玩家輸入數字
+   {case 0:
+    case 1:
+     x=0;
+     for(j=0;j<7;j++)                    // 輸出數字0
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 2:
+     x=1;
+     for(j=0;j<7;j++)                    // 輸出數字1
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 3 :
+     x=2;
+     for(j=0;j<7;j++)                    // 輸出數字2
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 4 :
+     x=3;
+     for(j=0;j<7;j++)                    // 輸出數字3
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 5 :
+     x=4;
+     for(j=0;j<7;j++)                    // 輸出數字4
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 6 :
+     x=5;
+     for(j=0;j<7;j++)                    // 輸出數字5
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 7 :
+     x=6;
+     for(j=0;j<7;j++)                    // 輸出數字6
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 8 :
+     x=7;
+     for(j=0;j<7;j++)                    // 輸出數字7
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 9 :
+     x=8;
+     for(j=0;j<7;j++)                    // 輸出數字8
+     {digitalWrite(j+6, light[x][j]);}
+    break;
+    
+    case 10 :
+     x=9;
+     for(j=0;j<7;j++)                    // 輸出數字9
+     {digitalWrite(j+6, light[x][j]);}
+    break;}}
+  
+ if(digitalRead(5)==HIGH)             // 按SW1開始比較    
+  {                                   
+   if(x==answer)
+   {digitalWrite(19,HIGH),digitalWrite(2,LOW),digitalWrite(17,LOW);}  //G  BINGO
+   if(x>answer)
+   {digitalWrite(19,LOW),digitalWrite(2,HIGH),digitalWrite(17,LOW);}  //R  TOO HIGH
+   if(x<answer)
+   {digitalWrite(19,LOW),digitalWrite(2,LOW),digitalWrite(17,HIGH);}  //Y  TOO LOW
+ }}
+}
