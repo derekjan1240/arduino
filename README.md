@@ -11,7 +11,7 @@
 5.偷看答案 (SW右)<br/>
 =============================================*/
 ### Circuit
-![default](https://cloud.githubusercontent.com/assets/24741602/24317710/0cd4cbe2-1135-11e7-80a5-952c30e22309.png)
+![guess the number game 1bit](https://cloud.githubusercontent.com/assets/24741602/24718316/259dde52-1a68-11e7-897d-65f4b0c956eb.png)
 
 ### IDE
 AUTODESK CIRCUITS <br/>
