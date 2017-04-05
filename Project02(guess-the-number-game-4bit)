@@ -1,0 +1,241 @@
+/*2017.4.6 猜數字遊戲(4bit)*/
+
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(10,9,8,7,6,5); //暫存器,致能,D4567
+int buttona =19;
+int buttonb =18;
+int latchPin=3;
+int dataPin=2;
+int clockPin=4;
+int buzzer=11;
+int ledg=12;     //powerled
+int slideswitch=13;  //on/off
+
+int abc=1;
+int number[4]={0,0,0,0};
+int bingo;
+int a,b,c,d;     //guess
+int aa,bb,cc,dd; //answer
+int counta=0,countb=0;
+int j,count;          //input for
+
+const byte light[14]={B01111111,B01110000,B00110011,B00110001,B00110000,B00010111,B00010011,B00010001,B00010000,B00001111,B00000111,B00000011,B00000001,B00000000};
+
+void ledab(int counta,int countb)
+{
+  digitalWrite(latchPin,LOW);    //74HC595
+  
+  if(counta==4)
+  {shiftOut(dataPin,clockPin,LSBFIRST,light[0]);}
+  
+  else if(counta==3)
+  {shiftOut(dataPin,clockPin,LSBFIRST,light[1]);}
+  
+  if(countb==4)
+  {shiftOut(dataPin,clockPin,LSBFIRST,light[9]);}
+  else if(countb==3)
+  {
+    if(counta==0)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[10]);}
+    else if(counta==1)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[5]);}  
+  }
+  else if(countb==2)
+  {
+    if(counta==0)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[11]);}
+    else if(counta==1)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[6]);}
+    else if(counta==2)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[2]);}
+  }
+  else if(countb==1)
+  {
+    if(counta==0)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[12]);}
+    else if(counta==1)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[7]);}
+    else if(counta==2)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[3]);} 
+  }
+  else if(countb==0)
+  {
+    if(counta==0)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[13]);}
+    else if(counta==1)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[8]);}
+    else if(counta==2)
+    {shiftOut(dataPin,clockPin,LSBFIRST,light[4]);}
+  }
+  
+  digitalWrite(latchPin,HIGH);
+}
+
+void bingomusic()
+{     
+ tone(11,659,150);  //(pin,hz,time)  
+ delay(150); 
+ tone(11,659,150);  //(pin,hz,time)
+ delay(150); 
+ tone(11,659,150);  //(pin,hz,time)
+ delay(300); 
+ tone(11,523,150);  //(pin,hz,time)
+ delay(150); 
+ tone(11,659,150);  //(pin,hz,time)
+ delay(300); 
+ tone(11,784,150);  //(pin,hz,time)
+ delay(300);
+ tone(11,784,150);  //(pin,hz,time)
+ delay(500); 
+}
+
+
+
+void setup() {
+  pinMode(slideswitch, INPUT);
+  pinMode(buttona, INPUT);
+  pinMode(buttonb, INPUT);
+  pinMode(buzzer,OUTPUT);
+  pinMode(ledg, OUTPUT);
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
+  randomSeed(analogRead(1)); 
+}
+
+
+void loop() {
+  
+  if(digitalRead(slideswitch)== LOW)
+  {
+   digitalWrite(ledg,LOW);       //all reset
+   shiftOut(dataPin,clockPin,LSBFIRST,light[13]);
+   number[0]={0},number[1]={0},number[2]={0},number[3]={0};  
+   counta=0,countb=0;   
+   lcd.begin(16,2);
+   lcd.print("Welcome To");
+   delay(500);
+   lcd.setCursor(0,1);
+   lcd.print("The GUESS GAME !!");
+   delay(1000);
+   lcd.clear();
+  }
+  else
+  {digitalWrite(ledg,HIGH);
+  
+  do{                       //產生答案
+    aa=random(0,9);
+    bb=random(0,9);
+    cc=random(0,9);
+    dd=random(0,9);
+  }while(aa==bb||aa==cc||aa==dd||bb==cc||bb==dd||cc==dd);
+   
+  lcd.print("Input the number");
+  delay(1500);
+  lcd.clear();
+  count=0;
+
+ do{ 
+    bingo=0,
+    count++;
+     do{                                   
+    abc=1;
+     for(j=0;j<4;j++)
+     {   
+      if(j==0)
+       {lcd.print("thousand : ");}
+      if(j==1)
+       {lcd.print("hundred : ");}  
+      if(j==2)
+       {lcd.print("ten : ");}
+      if(j==3)
+       {lcd.print("one : ");}
+    
+    int exit=0;
+       
+      do{
+         if(digitalRead(buttona)== HIGH)
+         {  
+          lcd.setCursor(0,1);
+          lcd.print(number[j]%10);
+          number[j]++; 
+          delay(300);
+         }
+         if(digitalRead(buttonb)== HIGH)
+         {exit=1;}
+       }while(exit==0);
+        
+    delay(300);
+    lcd.clear();
+      }  //for
+    
+    a=(number[0]%10)-1,b=(number[1]%10)-1,c=(number[2]%10)-1,d=(number[3]%10)-1;        
+    if(a<0)
+    {a=0;}
+    if(b<0)
+    {b=0;}    
+    if(c<0)
+    {c=0;}
+    if(d<0)
+    {d=0;}
+  
+    if(a==b||a==c||a==d||b==c||b==d||c==d)
+    {lcd.print("dounle input");
+     number[0]={0},number[1]={0},number[2]={0},number[3]={0};  //reset
+     abc=0;
+     delay(300);
+     lcd.clear();
+    }
+  }while(abc==0);
+   
+    //game start
+    shiftOut(dataPin,clockPin,LSBFIRST,light[13]); //reset led 
+    lcd.clear();
+    //bingo
+     if(a==aa&&b==bb&&c==cc&&d==dd)
+     {lcd.print("bingo");
+      bingomusic();
+      bingo=1;}
+    //A
+     if(a==aa)
+     {counta++;}
+     if(b==bb)
+     {counta++;}
+     if(c==cc)
+     {counta++;}
+     if(d==dd)
+     {counta++;}   
+    //B
+     if(a==bb||a==cc||a==dd)
+     {countb++;} 
+     if(b==aa||b==cc||b==dd)
+     {countb++;} 
+     if(c==aa||c==bb||c==dd)
+     {countb++;} 
+     if(d==aa||d==bb||d==cc)
+     {countb++;} 
+   
+   lcd.print(counta);
+   lcd.print("A");
+   lcd.print(countb);
+   lcd.print("B");  
+   lcd.setCursor(0,1);
+   lcd.print("count:");
+   lcd.print(count);
+   ledab(counta,countb);
+   delay(1000);
+   
+   lcd.clear();
+   lcd.print("Your= ");
+   lcd.print(a),lcd.print(b),lcd.print(c),lcd.print(d);
+   lcd.setCursor(0,1);
+   lcd.print("Answer= ");
+   lcd.print(aa),lcd.print(bb),lcd.print(cc),lcd.print(dd); 
+   delay(1500);
+   
+   number[0]={0},number[1]={0},number[2]={0},number[3]={0};  //reset
+   counta=0,countb=0;
+   lcd.clear();   
+ }while(bingo!=1);
+  }
+}
