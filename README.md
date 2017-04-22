@@ -11,6 +11,9 @@
 5.LCD顯示狀態 bingo時撥放音樂 <br/>
 6.偷看答案 (SW右)<br/>
 =============================================*/
+### Online Simulation link
+https://circuits.io/circuits/4492723-guess-the-numbers-game-1bit
+<br/>
 ### Circuit
 ![guess the number game 1bit](https://cloud.githubusercontent.com/assets/24741602/24718316/259dde52-1a68-11e7-897d-65f4b0c956eb.png)
 <br/><br/>
@@ -26,8 +29,29 @@
 5.LCD顯示狀態 bingo時撥放音樂 <br/>
 6.LED顯示結果 (G:Power light  Y:數字對位置正確(A)  R:數字對位置不正確(B) <br/>
 
+### Online Simulation link
+https://circuits.io/circuits/4536918-4-bit-guess-the-number-game
+<br/>
 ### Circuit
 ![guess the number game 4bit](https://cloud.githubusercontent.com/assets/24741602/24718764/c5f63308-1a69-11e7-9677-7c979cc54ee8.png)
+<br/><br/>
+## Project 03 "The Small Shooting Game"
+### About
+2017.4.22  ARDUINO 射擊小遊戲
+
+遊戲方法:<br/>
+1.接上電源後，倒數3秒開始遊戲<br/>
+2.LED黃: 玩家位置 LED紅: 敵人位置  <br/>
+3.左按鈕: 玩家向左 右按鈕: 玩家向右 中間按鈕: 射擊  <br/
+4.LCD顯示Level & Score <br/>
+5.通過全部關卡後 LCD顯示YOU WIN! LED全亮 持續3秒<br/>
+6.LCD顯示 Play again? 按下任意按鈕重新開始 <br/>
+
+### Online Simulation link
+https://circuits.io/circuits/4696616-the-shooting-game
+<br/>
+### Circuit
+![shooting game](https://cloud.githubusercontent.com/assets/24741602/25300282/6e597aec-273e-11e7-8e46-1ed8fea82a98.png)
 
 ### IDE
 AUTODESK CIRCUITS <br/>
