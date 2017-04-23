@@ -52,6 +52,21 @@ https://circuits.io/circuits/4696616-the-shooting-game
 <br/>
 ### Circuit
 ![shooting game](https://cloud.githubusercontent.com/assets/24741602/25300282/6e597aec-273e-11e7-8e46-1ed8fea82a98.png)
+<br/><br/>
+## Project 04 "The Password System"
+### About
+2017.4.23  ARDUINO 密碼鎖
+
+操作方法:<br/>
+1.依照LCD指示操作鍵盤<br/>
+2.鍵盤: "#":ENTER  "*":BACKSPACE  <br/>
+3.初始密碼: 0000 <br/>
+
+### Online Simulation link
+https://circuits.io/circuits/4720646-easy-password-system
+<br/>
+### Circuit
+![password system](https://cloud.githubusercontent.com/assets/24741602/25311969/e4ba6c1c-283f-11e7-9756-332eb125c14f.png)
 
 ### IDE
 AUTODESK CIRCUITS <br/>
