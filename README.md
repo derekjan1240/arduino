@@ -57,6 +57,12 @@ https://circuits.io/circuits/4696616-the-shooting-game
 ### About
 2017.4.23  ARDUINO 密碼鎖
 
+動作簡介:<br/>
+1.自行決定是否重設密碼
+2.三次解碼機會
+3.解碼成功後馬達動作(開門之類的)、LED綠亮，持續3秒
+4.累積三次失敗警報響、LED紅閃爍
+
 操作方法:<br/>
 1.依照LCD指示操作鍵盤<br/>
 2.鍵盤: "#":ENTER  "*":BACKSPACE  <br/>
