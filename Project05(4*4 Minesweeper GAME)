@@ -1,0 +1,434 @@
+// 2017.6.11 4*4 Minesweeper GAME
+
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+
+char ground[4][4]={ {42,42,42,42},{42,42,42,42},{42,42,42,42},{42,42,42,42} };  //42:* 41:!
+int boom[16]={};
+
+int led =8;
+int swup=9;
+int swdown=10;
+int swyup=13;
+int swydown=19;
+int swenter=11;
+int swflag=12;
+
+
+void play(int);
+void setboom(int);
+void reset(void);
+int getmenu();
+
+void setup() {
+  
+  Serial.begin(9600);  
+  pinMode(led, OUTPUT);
+  pinMode(swup, OUTPUT);
+  pinMode(swyup, OUTPUT);
+  pinMode(swdown, OUTPUT);
+  pinMode(swydown, OUTPUT);
+  pinMode(swenter, OUTPUT);
+  pinMode(swflag, OUTPUT);
+  
+  randomSeed(analogRead(0));
+  lcd.begin(16, 2);
+  lcd.print("Minesweeper GAME");
+  delay(500);
+  digitalWrite(led,HIGH);
+  delay(500);
+  digitalWrite(led,LOW);
+  lcd.clear();
+}
+
+void loop() {
+  
+  int menuchoose,range=1,custom=0;
+  bool ok=0;
+     
+  menuchoose=getmenu();  //選單
+  
+  if(menuchoose==2)
+  {range=6;}
+  else if(menuchoose==3)
+  {range=8;}
+  else if(menuchoose==4)
+  {        
+    do{
+      
+      if(digitalRead(swflag)==HIGH)
+      {custom++;}
+      
+      if(custom<0)
+      {custom=16;}
+      else if(custom>16)
+      {custom=0;}
+      
+      lcd.clear();
+      lcd.setCursor(0,1);
+      lcd.print("Boom Number= ");
+      lcd.print(custom);
+      delay(500);
+      
+      if(digitalRead(swenter)==HIGH && custom!=0)
+      {ok=1;}
+      
+    }while(!ok);
+    
+    range=custom;
+    lcd.clear();
+  }
+    
+  setboom(range);  //產生地雷              
+  Serial.println(" ");     // 顯示地雷(測試)
+  for(int k=0;k<range;k++)
+  {
+     Serial.print(boom[k]);
+     Serial.print(" ");
+  }
+  
+  lcd.clear();          
+  play(range); //Play GAME
+  reset();
+}
+
+
+//void-----------------------------------------------
+void reset()
+{    
+  for(int i=0;i<4;i++)
+  {
+    for(int j=0;j<4;j++)
+    {
+      ground[i][j]=42;
+    }
+  }
+  
+  for(int r=0;r<16;r++)
+  {boom[r]=16;}
+  
+  digitalWrite(led,LOW);
+  lcd.clear();
+}
+
+void setboom(int range)
+{
+  int boomnumber;
+  int tem;
+  
+  boomnumber=random(0,10);
+  boom[0]=boomnumber;
+  
+  for(int j=1;j<range;j++)
+  {     
+       boomnumber=random(0,16);
+    
+       //比較排序
+       if(boomnumber>boom[j-1])  //比前一大
+       {boom[j]=boomnumber;}
+       
+       else if(boomnumber==boom[j-1]) //一樣大 重新產生
+       {j--;}
+      
+       else                          //比前一小 往前比較
+       {
+          if(j==1)
+          {
+             tem=boom[0];
+             boom[0]=boomnumber;
+             boom[1]=tem;
+          } 
+                  
+          for(int k=j-2;k>=0;k--)
+          {
+              if(boomnumber>boom[k])  //排序完(介於中間)
+              { 
+                for(int i=k+1;i<=j;i++)
+                {
+                  tem=boom[i];
+                  boom[i]=boomnumber;
+                  boomnumber=tem;             
+                }
+                
+                break;
+              }
+         
+              else if(boomnumber==boom[k])//一樣大 重新產生
+              {
+                 j--;
+                 break;
+              }
+            
+              else if(k==0)               //排序完(他媽的最小)
+              {  
+                for(j;j>0;j--)
+                {
+                   boom[j]=boom[j-1];                    
+                }
+                
+                boom[0]= boomnumber;
+              }
+              
+           }            
+        }                
+    }
+}
+
+int getmenu()
+{ 
+   lcd.setCursor(1,0);
+   lcd.print("Easy");
+   lcd.setCursor(9,0);
+   lcd.print("Normal");
+   lcd.setCursor(1,1);
+   lcd.print("Hard");
+   lcd.setCursor(9,1);
+   lcd.print("Custom"); 
+  
+  int signdir =1;
+  bool ok=0;
+  
+  do{         
+         char signa=32,signb=32,signc=32,signd=32;
+    
+         if(digitalRead(swdown)==HIGH)
+         {signdir++;} 
+  
+         else if(digitalRead(swup)==HIGH)
+         {signdir--;}
+      
+         if(signdir>4)
+         {signdir=1;}
+         if(signdir<1)
+         {signdir=4;}
+        
+         if(signdir==1)
+         {signa=62;}
+         else if(signdir==2)
+         {signb=62;}
+         else if(signdir==3)
+         {signc=62;}
+         else if(signdir==4)
+         {signd=62;}
+    
+         lcd.setCursor(0,0);
+         lcd.print(signa);
+         lcd.setCursor(8,0);
+         lcd.print(signb);
+         lcd.setCursor(0,1);
+         lcd.print(signc);
+         lcd.setCursor(8,1);
+         lcd.print(signd);    
+       
+         if(digitalRead(swenter)==HIGH)
+         {ok=1;}
+    
+         delay(200);
+    
+       }while(!ok);
+  
+  return signdir;
+}
+
+
+
+void play(int range)
+{
+  int page=1,flag=range,rgightboom=0,stepcount=0;
+  bool ok=0;
+  int x=0,y=0,foot;
+  
+  do{                    
+       lcd.setCursor(6,0);
+       lcd.print("X= ");
+       lcd.print(x);
+       lcd.print(" Y= ");
+       lcd.print(y);
+       lcd.setCursor(6,1);
+       lcd.print("Page= ");
+       lcd.print(page);
+    
+       if(digitalRead(swdown)==HIGH)
+       {x--;} 
+  
+       else if(digitalRead(swup)==HIGH)
+       {x++;}
+    
+       else if((digitalRead(swyup)==HIGH && page==2)||(digitalRead(swyup)==HIGH && page==1 && y==1))
+       {y--;}
+    
+       else if((digitalRead(swydown)==HIGH && page==1)||(digitalRead(swydown)==HIGH && page==2 && y==0))
+       {y++;}
+      
+       if(x>3)
+       {x=0;}
+       if(x<0)
+       {x=3;}
+    
+       if(y>1)
+       {
+         y=0;
+         page++;
+       }
+       if(y<0)
+       {
+         y=1;
+         page--;
+       }
+       if(page>2)
+       {page=2;}
+       if(page<1)
+       {page=1;}    
+        
+       lcd.setCursor(x,y);
+       lcd.print(" ");
+       delay(200);       
+    
+       if( digitalRead(swenter)==HIGH && ((page==1 && ground[y][x]==42)||(page==2 && ground[y+page][x]==42)) )  //踩地雷
+       {
+         foot=(page-1)*8+y*4+x; //踩位置
+         stepcount++;
+                              
+         //提示數字
+         int boomnumber=0;
+         int linecol=foot%4,linerow=foot/4;  //行 列
+         int cheak[8]={16,16,16,16,16,16,16,16};
+         
+         if(linecol<3)  //x+1 
+         {
+           cheak[0]=foot+1;
+           if(linerow>0)
+           {cheak[4]=foot-3;}
+           if(linerow<3)
+           {cheak[5]=foot+5;}
+         }
+         if(linecol>0)  //x-1 
+         {
+           cheak[1]=foot-1;
+           if(linerow>0)
+           {cheak[6]=foot-5;}
+           if(linerow<3)
+           {cheak[7]=foot+3;}
+         }
+         if(linerow<3)  //y+1 
+         {cheak[2]=foot+4; }
+         if(linerow>0)  //y-1 
+         {cheak[3]=foot-4;}   
+         
+         for(int i=0;i<range;i++) //檢查爆炸
+         {
+           if(boom[i]==foot)
+           {
+             lcd.clear();
+             lcd.setCursor(0,0);
+             lcd.print("BOOM!");
+             digitalWrite(led,HIGH);
+             delay(1000);
+             ok=1;
+             break;
+           } 
+           
+           
+           for(int c=0;c<8;c++)
+           {
+             if(boom[i]==cheak[c])
+             {boomnumber++;}
+           }                   
+         } 
+         
+         if(page==1)
+         {ground[y][x]=boomnumber+48;}
+         else if(page==2)
+         {ground[y+page][x]=boomnumber+48;}
+         
+       }
+    
+    
+       else if(digitalRead(swflag)==HIGH)  //立旗標
+       {
+         foot=(page-1)*8+y*4+x; //踩位置
+           
+         if(page==1)
+         {
+           if(ground[y][x]==33)
+           {
+             ground[y][x]=42,flag++;
+             for(int i=0;i<range;i++) //檢查爆炸
+             {
+               if(boom[i]==foot)
+               {rgightboom--;} 
+             }   
+           }
+           
+           else if(flag>0)
+           {
+             ground[y][x]=33,flag--;
+             for(int i=0;i<range;i++) 
+             {
+               if(boom[i]==foot)
+               {rgightboom++;} 
+             }    
+           }
+         }
+         
+         else if(page==2)
+         {
+           if(ground[y+page][x]==33)
+           {
+             ground[y+page][x]=42,flag++;          
+             for(int i=0;i<range;i++) //檢查爆炸
+             {
+               if(boom[i]==foot)
+               {rgightboom--;} 
+             }           
+           }           
+           else if(flag>0)
+           {
+             ground[y+page][x]=33,flag--;
+             for(int i=0;i<range;i++) //檢查爆炸
+             {
+               if(boom[i]==foot)
+               {rgightboom++;} 
+             }              
+           }
+         }         
+       }
+    
+       //----------------------------- WIN
+       if(rgightboom==range || stepcount==(16-range))
+       {
+         lcd.clear();
+         lcd.setCursor(0,0);
+         lcd.print("You Win !!!");
+         delay(1000);
+         ok=1;
+       } 
+       
+    
+       //------------------------------
+       if(page==1)
+       {
+         for(int k=0;k<4;k++)
+         {
+           lcd.setCursor(k,0);
+           lcd.print(ground[0][k]);  
+           lcd.setCursor(k,1);  
+           lcd.print(ground[1][k]);     
+         }
+        }
+    
+        else if(page==2)
+        {
+          for(int k=0;k<4;k++)
+          {
+            lcd.setCursor(k,0);
+            lcd.print(ground[2][k]);  
+            lcd.setCursor(k,1);  
+            lcd.print(ground[3][k]);     
+          }
+        }  
+    
+  delay(200);  
+  }while(!ok);  
+}
