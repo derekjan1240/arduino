@@ -74,7 +74,7 @@ https://circuits.io/circuits/4720646-easy-password-system
 ### Circuit
 ![password system](https://cloud.githubusercontent.com/assets/24741602/25311969/e4ba6c1c-283f-11e7-9756-332eb125c14f.png)
 <br/><br/>
-## Project 04 "The Password System"
+## Project 05 "4*4 Minesweeper"
 ### About
 2017.6.11  ARDUINO 4*4 踩地雷
 
