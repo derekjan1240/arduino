@@ -73,6 +73,23 @@ https://circuits.io/circuits/4720646-easy-password-system
 <br/>
 ### Circuit
 ![password system](https://cloud.githubusercontent.com/assets/24741602/25311969/e4ba6c1c-283f-11e7-9756-332eb125c14f.png)
+<br/><br/>
+## Project 04 "The Password System"
+### About
+2017.6.11  ARDUINO 4*4 踩地雷
+
+動作簡介:<br/>
+1.四種難度(簡單:1 中等:6 困難:8 自訂:自訂地雷數)
+2.勝利條件: 1.立完所有旗桿 2.踩完所有無地雷區
+
+操作方法:<br/>
+1.六個按鈕: swup : move X axis + swdown : Move X axis - swyup : Move Y axis - swydown : Move Y axis + swenter : Enter swflag : Set Flag<br/>
+
+### Online Simulation link
+https://circuits.io/circuits/5196853-4-4-minesweeper
+<br/>
+### Circuit
+![minesweeper](https://user-images.githubusercontent.com/24741602/27007156-bf7d2cac-4e7b-11e7-8c77-b77a3fcf0370.png)
 
 ### IDE
 AUTODESK CIRCUITS <br/>
