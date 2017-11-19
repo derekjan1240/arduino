@@ -1,0 +1,398 @@
+/*2017.11.19  Thread 練習
+switch控制馬達運轉模式 (LED代替馬達)，LCD顯示運轉模式和時間，分為正轉模式，反轉模式和自訂模式，外加一顆正常停止鈕與緊急停止鈕。
+正轉模式: 持續正轉殖到使用者切斷才可切換轉向。
+反轉模式: 持續反轉殖到使用者切斷才可切換轉向。
+自訂模式: 以lcd選單選擇運轉段數，每段轉向與運轉時間並重複執行直到使用者切斷。
+*/
+
+#include <StaticThreadController.h>
+#include <Thread.h>
+#include <LiquidCrystal.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x3F,2,1,0,4,5,6,7,3,POSITIVE);  // Set the LCD I2C address
+
+//pinset --------------------------------
+const int Button_Motor_stop = 2;
+const int Button_Motor_right = 3;
+const int Button_Motor_left = 4;
+const int Button_Motor_Auto = 5;
+const int Button_Motor_Emergencystop = 9;
+
+const int Led_R = 6;
+const int Led_G = 7;
+const int Led_EmergencyStop = 8;
+const int Led_Setting = 10;
+const int NumberOfPart = 6;                                        //Auto段數 (Max)
+
+enum MotorState {MotorStop, MotorRight, MotorLeft, MotorAuto};     // 狀態
+int current_state;
+int autobuffer[NumberOfPart][2];                                   // AutoMode 設定內容 [Mode][Time]
+unsigned long strat_time;                                          // 當下時間
+int PartNumbers;                                                   // GetAutoMode() return
+bool IsEmergencyStop = 0;
+
+//void set --------------------------------
+void GetTimer();                                                   
+void SetEmergencyStop();
+void ResetMotor();
+void RunMotor();
+int GetAutoMode();
+
+//Thread Set --------------------------------
+Thread ThreadEmergencystop = Thread();   // stop
+Thread ThreadTimer = Thread();           // timer
+Thread ThreadRunMotor = Thread();        // Run
+
+void setup() {
+  pinMode(Button_Motor_stop, INPUT);
+  pinMode(Button_Motor_right, INPUT);
+  pinMode(Button_Motor_left, INPUT);
+  pinMode(Button_Motor_Auto, INPUT);
+  pinMode(Button_Motor_Emergencystop, INPUT);
+  pinMode(Led_R, OUTPUT);
+  pinMode(Led_G, OUTPUT);
+  pinMode(Led_Setting, OUTPUT);
+  pinMode(Led_EmergencyStop, OUTPUT);
+
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+
+  ThreadTimer.onRun(GetTimer);
+  ThreadTimer.setInterval(800);
+  ThreadEmergencystop.onRun(SetEmergencyStop);
+  ThreadEmergencystop.setInterval(50);
+  ThreadRunMotor.onRun(RunMotor);
+  ThreadRunMotor.setInterval(50);
+  
+  current_state =  MotorStop;    //初始狀態
+}
+
+
+void loop() {
+  ThreadEmergencystop.run();
+  ThreadRunMotor.run();
+  ThreadTimer.run();
+}
+
+//Function --------------------------------------------
+void RunMotor()
+{
+  //正轉模式 --------------------------------------
+  if(current_state ==  MotorRight)
+  {
+     digitalWrite(Led_R,HIGH);    
+  }  
+  //反轉模式 --------------------------------------
+  else if(current_state ==  MotorLeft)
+  {
+     digitalWrite(Led_G,HIGH);
+  }
+  //自訂模式 --------------------------------------
+  else if(current_state ==  MotorAuto)
+  {
+    //auto執行的東西
+    while(1)
+    {
+       for(int j=0; j < PartNumbers; j++)
+       {   
+          if(autobuffer[j][0] == MotorRight)
+          {
+            current_state =  MotorRight;
+
+            strat_time = millis();
+            while( ( (millis()-strat_time) <= autobuffer[j][1]*1000 ) && autobuffer[j][1]!=0 )
+            {
+               digitalWrite(Led_R,HIGH);
+               digitalWrite(Led_G,LOW);
+               GetTimer();
+               SetEmergencyStop();
+               if(IsEmergencyStop == 1) //提早離開while
+               {break;}
+            }
+            current_state =  MotorAuto;
+          }
+      
+          else if(autobuffer[j][0] == MotorLeft)
+          {
+              current_state =  MotorLeft;
+              strat_time = millis();
+              while( ( (millis()-strat_time) <= autobuffer[j][1]*1000) && autobuffer[j][1]!=0 )
+              {
+                 digitalWrite(Led_R,LOW);
+                 digitalWrite(Led_G,HIGH);
+                 GetTimer();
+                 SetEmergencyStop();
+                 if(IsEmergencyStop == 1) //提早離開while
+                 {break;}
+              }
+              current_state =  MotorAuto;
+           }
+      
+          else
+          {
+            current_state =  MotorStop;
+
+            strat_time = millis();
+            while( ( (millis()-strat_time) <= autobuffer[j][1]*1000) && autobuffer[j][1]!=0 )
+            {
+               digitalWrite(Led_R,LOW);
+               digitalWrite(Led_G,LOW);
+               GetTimer();
+               SetEmergencyStop();
+               if(IsEmergencyStop == 1) //提早離開while
+               {break;}
+            }       
+            current_state =  MotorAuto;
+          }
+          if(IsEmergencyStop == 1) //離開automode
+          {break;}
+        }
+       if(IsEmergencyStop == 1) //離開重複執行
+       {break;}
+    }
+    IsEmergencyStop = 0;
+    strat_time = millis();
+    current_state = MotorStop;
+  }
+
+  //state_stop 等待切換狀態 --------------------------------
+  if(current_state ==  MotorStop) 
+  {
+    if(digitalRead(Button_Motor_right) == HIGH )
+    {
+      current_state = MotorRight;
+      strat_time = millis();
+      Serial.println("MotorRight");
+    }
+    else if(digitalRead(Button_Motor_left) == HIGH )
+    {
+      current_state = MotorLeft;
+      strat_time = millis();
+      Serial.println("MotorLeft");
+    } 
+    //auto setting
+    else if(digitalRead(Button_Motor_Auto) == HIGH )
+    {
+      current_state = MotorAuto;
+      //strat_time = millis();
+      Serial.println("MotorAuto");  
+      lcd.clear();
+      lcd.print("SetAntoMode");          
+      PartNumbers =  GetAutoMode();
+      Serial.println(PartNumbers); 
+      lcd.clear();
+      lcd.print(PartNumbers); 
+    }     
+  }
+  
+  //state_RL 等待呼叫停止 --------------------------------
+  if(digitalRead(Button_Motor_stop) == HIGH)
+  {
+    Serial.println("Button_Motor_stop = HIGH");
+    while(digitalRead(Button_Motor_stop) == HIGH){} //負緣觸發
+    strat_time = millis();
+    ResetMotor();   //motor,計時reset
+  }
+}
+
+//
+int GetAutoMode()
+{
+  //段數量設定(Menu)
+  int partnumber = 1;
+  bool isok = 0;
+   
+  do{
+      lcd.clear();
+      lcd.print("Part:");
+      lcd.print(partnumber); 
+      if(digitalRead(Button_Motor_right) == HIGH)  //up
+      {
+        while(digitalRead(Button_Motor_right) == HIGH){}
+        partnumber++;
+        if(partnumber > 6)
+        {partnumber = 1;}      
+      }
+      else if(digitalRead(Button_Motor_left) == HIGH)  //down
+      {
+        while(digitalRead(Button_Motor_left) == HIGH){}
+        partnumber--;
+        if(partnumber < 1)
+        {partnumber = 6;}      
+      } 
+      else if(digitalRead(Button_Motor_stop) == HIGH)  //ok
+      {
+        while(digitalRead(Button_Motor_stop) == HIGH){}
+        lcd.setCursor(0, 1);
+        lcd.print("Ok!");
+        isok = 1;
+      }
+      delay(300);
+  }while(!isok);
+  delay(1000);
+  
+  //段內容設定(Menu)
+  for(int j =0; j<partnumber; j++)
+  {
+      bool iscontentsetok = 0;
+      lcd.clear();    
+      lcd.print("Set Part ");
+      lcd.print(j+1);        
+      while(1)
+      {    
+        if(digitalRead(Button_Motor_right) == HIGH)  //up
+        {
+          while(digitalRead(Button_Motor_right) == HIGH){}
+          lcd.clear();    
+          lcd.print("Set Part ");
+          lcd.print(j+1);
+          lcd.setCursor(0, 1);
+          lcd.print("Motor_R");
+          autobuffer[j][0] = MotorRight;
+          iscontentsetok = 1; 
+        }
+        else if(digitalRead(Button_Motor_left) == HIGH)  //down
+        {
+          while(digitalRead(Button_Motor_left) == HIGH){}
+          lcd.clear();    
+          lcd.print("Set Part ");
+          lcd.print(j+1);
+          lcd.setCursor(0, 1);
+          lcd.print("Motor_L");
+          autobuffer[j][0] = MotorLeft;
+          iscontentsetok = 1;
+        } 
+        else if(digitalRead(Button_Motor_Auto) == HIGH)  //stop
+        {
+          while(digitalRead(Button_Motor_Auto) == HIGH){}
+          lcd.clear();    
+          lcd.print("Set Part ");
+          lcd.print(j+1);
+          lcd.setCursor(0, 1);
+          lcd.print("Motor_S");
+          autobuffer[j][0] = MotorStop;
+          iscontentsetok = 1;
+        } 
+        else if(digitalRead(Button_Motor_stop) == HIGH && iscontentsetok == 1)  //ok
+        {
+          while(digitalRead(Button_Motor_stop) == HIGH){}
+          lcd.clear();    
+          lcd.print("Set Part ");
+          lcd.print(j+1);
+          lcd.setCursor(0, 1);
+          lcd.print("Ok!");
+          delay(500);
+          break;
+        }
+        delay(300);
+      }
+      delay(1000);
+
+      int timeset = 0;
+      while(1)
+      {
+        lcd.clear();
+        lcd.print("Set Part ");
+        lcd.print(j+1);
+        lcd.print(" Time");
+        lcd.setCursor(0, 1);
+        lcd.print(timeset);
+        lcd.print(" s");
+        
+        if(digitalRead(Button_Motor_right) == HIGH)  //up
+        {
+          while(digitalRead(Button_Motor_right) == HIGH){}
+          timeset++;
+          if(timeset > 10)
+          {timeset = 0;}
+          autobuffer[j][1] = timeset;
+        }
+        else if(digitalRead(Button_Motor_left) == HIGH)  //down
+        {
+          while(digitalRead(Button_Motor_left) == HIGH){}
+          timeset--;
+          if(timeset < 0)
+          {timeset = 10;}
+          autobuffer[j][1] = timeset;
+        } 
+        else if(digitalRead(Button_Motor_stop) == HIGH)  //ok
+        {
+          while(digitalRead(Button_Motor_stop) == HIGH){}
+          lcd.print("  Ok!");
+          delay(500);
+          break;
+        }
+        delay(300);
+      }  
+  }
+
+  return partnumber;
+}
+
+void ResetMotor()
+{
+    Serial.println("ResetMotor");
+  
+    current_state =  MotorStop;
+    digitalWrite(Led_R,LOW);
+    digitalWrite(Led_G,LOW);
+      
+    Serial.print("current_state");
+    Serial.println(current_state);
+}
+
+//thread 2(緊急停止) ------------------------------------------------------------
+void SetEmergencyStop() //thread 2 
+{  
+  if(digitalRead(Button_Motor_Emergencystop) == HIGH && current_state != MotorStop)
+  {
+    lcd.clear();
+    lcd.print("EmergencyStop !");
+    
+    Serial.println("EmergencyStop == HIGH");
+    current_state =  MotorStop;
+    
+    digitalWrite(Led_R,LOW);
+    digitalWrite(Led_G,LOW);
+    digitalWrite(Led_EmergencyStop,HIGH);
+    //strat_time = millis();
+    
+    while(digitalRead(Button_Motor_Emergencystop) == HIGH){}
+    strat_time = millis();
+    digitalWrite(Led_EmergencyStop,LOW);
+
+    IsEmergencyStop = 1;
+  }  
+}
+
+//thread 1(計時) ------------------------------------------------------------
+void GetTimer()   
+{
+  unsigned long during_time = (millis() - strat_time)/1000;
+  unsigned long seconeds = during_time%60;
+  unsigned long minutes = (during_time-during_time%60)/60;
+
+  // Serial ------------------------------------
+  Serial.print("during_time: ");
+  Serial.println(during_time);
+
+  Serial.print("current_state: ");
+  Serial.println(current_state);
+  Serial.print(minutes);
+  Serial.print(" m ");
+  Serial.print(seconeds+1);
+  Serial.println(" s");
+  Serial.println(" ");
+
+  //LCD display ---------------------------------
+  lcd.clear();
+  lcd.print("current_state: ");
+  lcd.print(current_state);
+  lcd.setCursor(0, 1);
+  lcd.print(minutes);
+  lcd.print(" m ");
+  lcd.print(seconeds+1);
+  lcd.print(" s");           
+  delay(200);         
+}
