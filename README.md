@@ -91,6 +91,21 @@ https://circuits.io/circuits/5196853-4-4-minesweeper
 ### Circuit
 ![minesweeper](https://user-images.githubusercontent.com/24741602/27007156-bf7d2cac-4e7b-11e7-8c77-b77a3fcf0370.png)
 
+## Project 06 "Thread Practice : Switch Drive Motor "
+### About
+2017.11.19  ARDUINO Thread Practice
+
+動作簡介:<br/>
+switch控制馬達運轉模式 (LED代替馬達)，LCD顯示運轉模式和時間，分為正轉模式，反轉模式和自訂模式，外加一顆正常停止鈕與緊急停止鈕。
+正轉模式: 持續正轉殖到使用者切斷才可切換轉向。
+反轉模式: 持續反轉殖到使用者切斷才可切換轉向。
+自訂模式: 以lcd選單選擇運轉段數，每段轉向與運轉時間並重複執行直到使用者切斷。
+
+操作方法:<br/>
+1.四個按鈕: 利用switch來作狀態切換(正轉 反轉 自訂)和 緊急停止<br/>
+
+![switchmotor](https://user-images.githubusercontent.com/24741602/32988307-4ece831c-cd3c-11e7-958f-3ff9118b8da2.jpg)
+
 ### IDE
 AUTODESK CIRCUITS <br/>
 https://circuits.io/
