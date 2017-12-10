@@ -120,6 +120,9 @@ switch控制馬達運轉模式 (LED代替馬達)，LCD顯示運轉模式和時�
 2.Arduino via Serial Port send cmd to computer's Node js
 3.Node js creat a server with data then APP can connect the Server
 
+![screenshot_20171210-104123](https://user-images.githubusercontent.com/24741602/33802431-162f3d68-ddb2-11e7-8f22-0fa9c176dc2a.jpg)
+![p_20171210_104001](https://user-images.githubusercontent.com/24741602/33802435-249cfed0-ddb2-11e7-95d5-345650fe1193.jpg)
+
 ### IDE
 AUTODESK CIRCUITS <br/>
 https://circuits.io/
