@@ -106,6 +106,20 @@ switch控制馬達運轉模式 (LED代替馬達)，LCD顯示運轉模式和時�
 
 ![switchmotor](https://user-images.githubusercontent.com/24741602/32988307-4ece831c-cd3c-11e7-958f-3ff9118b8da2.jpg)
 
+## Project 07 "Bot"
+### About
+2017.12.10  ARDUINO + Node js + App Practice
+
+動作簡介:<br/>
+1.藉由爬蟲取得即時資訊(PM2.5 天氣預報 PTT標題)
+2.藍芽操控 Arduino 元件
+3.Arduino 藍芽通知 APP 訊息 
+
+操作方法:<br/>
+1.APP via bluetooth send cmd to Arduino
+2.Arduino via Serial Port send cmd to computer's Node js
+3.Node js creat a server with data then APP can connect the Server
+
 ### IDE
 AUTODESK CIRCUITS <br/>
 https://circuits.io/
