@@ -119,6 +119,8 @@ void Countdown()
       }
       else
       {
+        lcd.setCursor(12, 0);
+         lcd.print(" ");
         lcd.setCursor(13, 0);
         lcd.print(TimerTime);
       }
