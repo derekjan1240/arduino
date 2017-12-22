@@ -123,6 +123,22 @@ switch控制馬達運轉模式 (LED代替馬達)，LCD顯示運轉模式和時�
 ![screenshot_20171210-104123](https://user-images.githubusercontent.com/24741602/33802431-162f3d68-ddb2-11e7-8f22-0fa9c176dc2a.jpg)
 ![p_20171210_104001](https://user-images.githubusercontent.com/24741602/33802435-249cfed0-ddb2-11e7-95d5-345650fe1193.jpg)
 
+## Project08(Jump & Squat GAME)
+### About
+2017.12.22  ARDUINO Thread Practice
+
+動作簡介:<br/>
+1.透過站立、蹲下、跳躍來躲避障礙物
+2.轉VR可以改變速度
+3.碰到障礙 HP-1 Led 燈熄1顆 (預設死亡重新開始)
+
+操作方法:<br/>
+1.按按鈕 做跳和蹲的動作(P:站立 b:蹲下 o、q、d:障礙物)
+
+![01](https://user-images.githubusercontent.com/24741602/34301473-b00e07ca-e767-11e7-97f0-e9e55968375e.jpg)
+![02](https://user-images.githubusercontent.com/24741602/34301475-b276e194-e767-11e7-9acb-c9675050db93.jpg)
+![03](https://user-images.githubusercontent.com/24741602/34301477-b45d462e-e767-11e7-87c7-51d23bfaa3c0.jpg)
+
 ### IDE
 AUTODESK CIRCUITS <br/>
 https://circuits.io/
