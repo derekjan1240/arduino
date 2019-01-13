@@ -1,0 +1,236 @@
+/*2017.4.22 射擊小遊戲*/
+
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(14,15,16,17,18,19);
+
+int dataPina = 2;
+int latchPina = 3;
+int clockPina = 4;
+
+int dataPinb = 5;
+int latchPinb = 6;
+int clockPinb = 7;
+
+int dataPinc = 11;
+int latchPinc = 12;
+int clockPinc = 13;
+
+int buttonl = 8;
+int buttonatk = 9;
+int buttonr = 10;
+
+//int ledg = 14
+
+void setup() {
+  pinMode(dataPina, OUTPUT);
+  pinMode(latchPina, OUTPUT);
+  pinMode(clockPina, OUTPUT);
+  
+  pinMode(dataPinb, OUTPUT);
+  pinMode(latchPinb, OUTPUT);
+  pinMode(clockPinb, OUTPUT);
+  
+  pinMode(dataPinc, OUTPUT);
+  pinMode(latchPinc, OUTPUT);
+  pinMode(clockPinc, OUTPUT);
+  
+  pinMode(buttonl, INPUT);
+  pinMode(buttonr, INPUT);
+  pinMode(buttonatk, INPUT);
+ // pinMode(ledg, OUTPUT);
+  
+  lcd.begin(16,2);
+  lcd.print("welcome game!");
+  lcd.setCursor(0,1);
+  lcd.print("3..");
+  delay(1000);
+  lcd.print("2..");
+  delay(1000);
+  lcd.print("1..");
+  delay(1000);
+  lcd.clear();
+  lcd.print("GAME START !");
+  lcd.setCursor(0,1);
+  lcd.print("SCORE:");
+  
+}
+
+
+void loop() {
+  
+  int count=1,level=1,score=0,speed=100;
+  int playermove = 0;
+  
+  const byte playerposition[9]={B10000000,B01000000,B00100000,B00010000,B00001000,B00000100,B00000010,B00000001,B00000000};
+  int test[8]={0,0,0,0,0,0,0,0};
+      
+  //reseet monster ---------------
+  digitalWrite(latchPinc, LOW);    
+  shiftOut(dataPinc,clockPinc,LSBFIRST,0);
+  digitalWrite(latchPinc, HIGH);
+  
+  digitalWrite(latchPinb, LOW);    
+  shiftOut(dataPinb,clockPinb,LSBFIRST,0);
+  digitalWrite(latchPinb, HIGH);  
+  //------------------------------
+  
+  bool play = true;
+  int monstervalue=255;
+  
+  digitalWrite(latchPinc, LOW);    
+  shiftOut(dataPinc,clockPinc,LSBFIRST,monstervalue);
+  digitalWrite(latchPinc, HIGH);
+  
+  do{   
+       int a=monstervalue/128;
+       int b=(monstervalue-a*128)/64;
+       int c=(monstervalue-a*128-b*64)/32;
+       int d=(monstervalue-a*128-b*64-c*32)/16;    
+       int e=(monstervalue-a*128-b*64-c*32-d*16)/8;
+       int f=(monstervalue-a*128-b*64-c*32-d*16-e*8)/4;
+       int g=(monstervalue-a*128-b*64-c*32-d*16-e*8-f*4)/2;
+       int h=monstervalue-a*128-b*64-c*32-d*16-e*8-f*4-g*2;
+    
+       //digitalWrite(ledg,LOW);
+   
+//射擊 -------------------------------------------------
+    
+       if(digitalRead(buttonatk)==HIGH)
+       {
+          // digitalWrite(ledg,HIGH);  //射擊顯示
+                   
+           if(test[playermove]==0)
+           {   
+             monstervalue=monstervalue-pow(2,7-playermove);
+             test[playermove]=1; //攻擊紀錄避免重複射擊
+             score=score+(level*10);
+           }       
+       }
+
+//敵人移動 -------------------------------------------------
+    
+       if((count%50)<=25)
+       {
+           digitalWrite(latchPinb, LOW);    
+           shiftOut(dataPinb,clockPinb,LSBFIRST,0);
+           digitalWrite(latchPinb, HIGH);
+           
+           digitalWrite(latchPinc, LOW);    
+           shiftOut(dataPinc,clockPinc,LSBFIRST,monstervalue);
+           digitalWrite(latchPinc, HIGH);
+         } 
+       else if((count%50)>25)
+         {
+           digitalWrite(latchPinc, LOW);    
+           shiftOut(dataPinc,clockPinc,LSBFIRST,0);
+           digitalWrite(latchPinc, HIGH);
+           
+           digitalWrite(latchPinb, LOW);    
+           shiftOut(dataPinb,clockPinb,LSBFIRST,monstervalue);
+           digitalWrite(latchPinb, HIGH);
+         }              
+    
+ //方向 ------------------------------------------------- 
+       if(digitalRead(buttonl)==HIGH)  //left
+       {
+           playermove=playermove-1;
+    
+           if(playermove<0)
+           {playermove=0;} 
+       }
+  
+       else if(digitalRead(buttonr)==HIGH) //right
+       {
+          playermove=playermove+1;
+    
+          if(playermove>7)
+         {playermove=7;} 
+       }
+  
+  
+       digitalWrite(latchPina, LOW);    
+       shiftOut(dataPina,clockPina,LSBFIRST,playerposition[playermove]);
+       digitalWrite(latchPina, HIGH);   
+    
+ //顯示分數 --------------------------------------------------------
+    
+   lcd.clear(); 
+   lcd.setCursor(0,0);
+   lcd.print("Level: ");
+   lcd.print(level); 
+   lcd.setCursor(0,1);
+   lcd.print("Score: ");
+   lcd.print(score); 
+    
+ //敵人重置 -------------------------------------------------------- 
+    
+    if(monstervalue==0)  //全滅
+    {
+      
+      for(int k=0;k<8;k++)
+      {
+       digitalWrite(latchPina, LOW);    
+       shiftOut(dataPina,clockPina,LSBFIRST,pow(2,k));
+       digitalWrite(latchPina, HIGH);
+       delay(100);
+      }
+      
+      for(int k=8;k>-1;k--)
+      {
+       digitalWrite(latchPina, LOW);    
+       shiftOut(dataPina,clockPina,LSBFIRST,pow(2,k));
+       digitalWrite(latchPina, HIGH);
+        delay(100);
+      }
+            
+       monstervalue = 255;
+       level++;
+         
+       for(int j=0;j<8;j++)
+       {test[j]=0;}
+       count = -1;
+       speed-=20;        
+    }
+    
+   //遊戲結束 ------------------------------------------------------- 
+   if(speed<=0)
+   {
+      lcd.clear(); 
+      lcd.setCursor(0,0);
+      lcd.print("YOU WIN!!");
+     
+       digitalWrite(latchPina, LOW);    
+       shiftOut(dataPina,clockPina,LSBFIRST,255);
+       digitalWrite(latchPina, HIGH);
+     
+       digitalWrite(latchPinb, LOW);    
+       shiftOut(dataPinb,clockPinb,LSBFIRST,255);
+       digitalWrite(latchPinb, HIGH);
+     
+       digitalWrite(latchPinc, LOW);    
+       shiftOut(dataPinc,clockPinc,LSBFIRST,255);
+       digitalWrite(latchPinc, HIGH);
+     
+      play=false;
+   }
+    
+   count++;
+   delay(speed); //speed
+   
+  }while(play); 
+  
+  
+  //再玩一次 ------------------------------------------------------- 
+  
+  delay(3000);
+ 
+  do{
+  lcd.clear(); 
+  lcd.setCursor(0,0);
+  lcd.print("Play again?");
+  lcd.setCursor(0,1);
+  lcd.print("Press Button");  
+  delay(300);  
+  }while(digitalRead(buttonatk)== LOW && digitalRead(buttonl)== LOW && digitalRead(buttonr)== LOW);
+}
