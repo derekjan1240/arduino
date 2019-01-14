@@ -13,9 +13,10 @@ const int In3 = 5;
 const int In4 = 4;
 
 // Global Variables set ------------------------
-enum MainState {None, Crawling, Control};
 char cmd_convert[20];
-const int speedVal = 127;
+const int speedVal =80;
+unsigned long time;
+unsigned long timeStamp =0;
 
 void setup() {
   // pinMode set ------------------------
@@ -30,7 +31,7 @@ void setup() {
   I2CBT.begin(9600); 
   lcd.begin(16, 2);
   Serial.println("Lcd ready!");
-  
+  MoveStop();
   // MotorTest();
 }
 
@@ -43,6 +44,7 @@ void loop() {
     if(insize > 0) { //讀取藍牙訊息
       lcd.clear();
       digitalWrite(LedRed,HIGH); //藍牙燈
+      timeStamp = millis();
 
       //處理藍芽訊息
       for (int i=0; i<insize; i++){
@@ -102,16 +104,26 @@ void loop() {
           break;
       }
     }else{ //等待藍牙訊息
-      
-      digitalWrite(LedRed,LOW); //藍牙燈
-//      lcd.setCursor(0, 1); 
-//      lcd.print("Wait Input!");
+        digitalWrite(LedRed,LOW); //藍牙燈
+        checkBluetoothSigmal();   //偵測連線異常 持續3秒停止
     }
     
   } 
 }
 
-void MoveUp() {
+void checkBluetoothSigmal(){
+  time = millis();
+//  Serial.println(time);
+//  Serial.println(timeStamp);
+  if((time-timeStamp)/1000>10){
+    MoveStop();
+    lcd.clear();
+    lcd.setCursor(0, 0); 
+    lcd.print("Detect Error!");
+  }
+}
+  
+void MoveDown() {
 //  Serial.println("up");
   analogWrite(In1, speedVal);
   analogWrite(In2, 0);
@@ -120,7 +132,7 @@ void MoveUp() {
 //  delay(2000);
 }
 
-void MoveDown() {
+void MoveUp() {
 //  Serial.println("down");
   analogWrite(In1, 0);
   analogWrite(In2, speedVal);
